@@ -1,0 +1,15 @@
+﻿  mainbase.cpp
+  Mesh.cpp
+  Shader.cpp
+E:\Computación Grafica\01_Proyecto\CGL02_26-2\CGL02_26-2\Shader.cpp(121,24): warning C4267: '=': conversion from 'size_t' to 'GLint', possible loss of data
+  Window.cpp
+E:\Computación Grafica\01_Proyecto\CGL02_26-2\CGL02_26-2\Window.h(12,36): warning C4244: 'return': conversion from 'GLint' to 'GLfloat', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+E:\Computación Grafica\01_Proyecto\CGL02_26-2\CGL02_26-2\Window.h(13,37): warning C4244: 'return': conversion from 'GLint' to 'GLfloat', possible loss of data
+  (compiling source file 'Window.cpp')
+  
+  Generating Code...
+E:\Computación Grafica\01_Proyecto\CGL02_26-2\CGL02_26-2\Window.cpp(74,1): warning C4715: 'Window::Initialise': not all control paths return a value
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  CGL02_26-2.vcxproj -> E:\Computación Grafica\01_Proyecto\CGL02_26-2\x64\Debug\CGL02_26-2.exe
