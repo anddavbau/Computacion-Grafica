@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include <glew.h>
-#include <glfw3.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <thread>
-#include <chrono>
 //Dimensiones de la ventana
 const int WIDTH = 800, HEIGHT = 800;
 GLuint VAO, VBO, shader;
