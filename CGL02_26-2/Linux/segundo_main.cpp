@@ -208,7 +208,7 @@ int main()
 		glUseProgram(shader);
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES,0,12);//Modificacion para dibujar 2 triangulos
+		glDrawArrays(GL_TRIANGLES,0,12);//Modificacion para dibujar 4 triangulos
 		glBindVertexArray(0);
 
 		glUseProgram(0);
@@ -220,4 +220,5 @@ int main()
 
 
 	return 0;
+
 }
