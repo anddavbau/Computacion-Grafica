@@ -37,10 +37,10 @@ void CrearTriangulo()
 		//Rombo
 		-0.5f,-0.5f,0.0f,
 		-0.5f,0.5f,0.0f,
-		-1.0f,0.0f,0.0f,
+		-0.75f,0.0f,0.0f,
 		-0.5f,-0.5f,0.0f,
 		-0.5f,0.5f,0.0f,
-		0.0f,0.0f,0.0f,
+		-0.25f,0.0f,0.0f,
 
 		//Trapecio
 		1.0f,-0.25f,0.0f,
@@ -209,7 +209,7 @@ int main()
 		glUseProgram(shader);
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES,0,12);//Modificacion para dibujar 2 triangulos
+		glDrawArrays(GL_TRIANGLES,0,12);//Modificacion para dibujar 4 triangulos
 		glBindVertexArray(0);
 
 		glUseProgram(0);
