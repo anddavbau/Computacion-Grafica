@@ -3,6 +3,7 @@
 #include <glew.h>
 #include <glfw3.h>
 #include <thread>
+#include <time.h>
 #include <chrono>
 //Dimensiones de la ventana
 const int WIDTH = 800, HEIGHT = 800;
@@ -34,21 +35,110 @@ void main()											\n\
 void CrearTriangulo()
 {
 	GLfloat vertices[] = {
-		//Rombo
-		-0.5f,-0.5f,0.0f,
-		-0.5f,0.5f,0.0f,
-		-0.75f,0.0f,0.0f,
-		-0.5f,-0.5f,0.0f,
-		-0.5f,0.5f,0.0f,
-		-0.25f,0.0f,0.0f,
+		//Letra B
+		-1.0f,-1.0f,0.0f,
+		-1.0f,-0.2f,0.0f,
+		-0.9f,-1.0f,0.0f,
+		-0.9f,-1.0f,0.0f,
+		-1.0f,-0.2f,0.0f,
+		-0.9f,-0.2f,0.0f,
+		-0.9f,-1.0f,0.0f,
+		-0.9f,-0.9f,0.0f,
+		-0.7f,-1.0f,0.0f,
+		-0.9f,-0.9f,0.0f,
+		-0.7f,-1.0f,0.0f,
+		-0.7f,-0.9f,0.0f,
+		-0.7f,-1.0f,0.0f,
+		-0.7f,-0.9f,0.0f,
+		-0.6f,-1.0f,0.0f,
+		-0.6f,-1.0f,0.0f,
+		-0.7f,-0.9f,0.0f,
+		-0.6f,-0.8f,0.0f,
+		-0.6f,-1.0f,0.0f,
+		-0.6f,-0.8f,0.0f,
+		-0.4f,-0.8f,0.0f,
+		-0.6f,-0.8f,0.0f,
+		-0.4f,-0.8f,0.0f,
+		-0.7f,-0.6f,0.0f,
+		-0.6f,-0.8f,0.0f,
+		-0.7f,-0.7f,0.0f,
+		-0.7f,-0.6f,0.0f,
+		-0.9f,-0.7f,0.0f,
+		-0.9f,-0.5f,0.0f,
+		-0.7f,-0.7f,0.0f,
+		-0.7f,-0.7f,0.0f,
+		-0.9f,-0.5f,0.0f,
+		-0.7f,-0.5f,0.0f,
+		-0.7f,-0.6f,0.0f,
+		-0.7f,-0.5f,0.0f,
+		-0.6f,-0.4f,0.0f,
+		-0.7f,-0.6f,0.0f,
+		-0.6f,-0.4f,0.0f,
+		-0.5f,-0.4f,0.0f,
+		-0.6f,-0.4f,0.0f,
+		-0.5f,-0.4f,0.0f,
+		-0.7f,-0.2f,0.0f,
+		-0.6f,-0.4f,0.0f,
+		-0.7f,-0.3f,0.0f,
+		-0.7f,-0.2f,0.0f,
+		-0.9f,-0.3f,0.0f,
+		-0.9f,-0.2f,0.0f,
+		-0.7f,-0.3f,0.0f,
+		-0.9f,-0.2f,0.0f,
+		-0.7f,-0.3f,0.0f,
+		-0.7f,-0.2f,0.0f,
 
-		//Trapecio
-		1.0f,-0.25f,0.0f,
-		0.0f,-0.25f,0.0f,
-		0.75f,0.25f,0.0f,
-		0.0f,-0.25f,0.0f,
-		0.75f,0.25f,0.0f,
-		0.25,0.25f,0.0f
+		//Letra N
+		-0.3f,-0.3f,0.0f,
+		-0.2f,-0.3f,0.0f,
+		-0.3f,0.3f,0.0f,
+		-0.2f,-0.3f,0.0f,
+		-0.3f,0.3f,0.0f,
+		-0.2f,0.3f,0.0f,
+		-0.2f,0.1f,0.0f,
+		-0.2f,0.3f,0.0f,
+		0.2f,-0.3f,0.0f,
+		-0.2f,0.3f,0.0f,
+		0.2f,-0.3f,0.0f,
+		0.2f,-0.1f,0.0f,
+		0.2f,-0.3f,0.0f,
+		0.3f,-0.3f,0.0f,
+		0.2f,0.3f,0.0f,
+		0.3f,-0.3f,0.0f,
+		0.2f,0.3f,0.0f,
+		0.3f,0.3f,0.0f,
+
+		//Letra A
+		0.4f,0.4f,0.0f,
+		0.5f,0.4f,0.0f,
+		0.5f,0.6f,0.0f,
+		0.5f,0.4f,0.0f,
+		0.5f,0.6f,0.0f,
+		0.6f,0.6f,0.0f,
+		0.5f,0.6f,0.0f,
+		0.55f,0.7f,0.0f,
+		0.85f,0.7f,0.0f,
+		0.5f,0.6f,0.0f,
+		0.9f,0.6f,0.0f,
+		0.85f,0.7f,0.0f,
+		0.55f,0.7f,0.0f,
+		0.6f,0.7f,0.0f,
+		0.7f,1.0f,0.0f,
+		0.6f,0.7f,0.0f,
+		0.7f,0.9f,0.0f,
+		0.7f,1.0f,0.0f,
+		0.7f,1.0f,0.0f,
+		0.7f,0.9f,0.0f,
+		0.8f,0.7f,0.0f,
+		0.7f,1.0f,0.0f,
+		0.8f,0.7f,0.0f,
+		0.85f,0.7f,0.0f,
+		0.8f,0.6f,0.0f,
+		0.9f,0.6f,0.0f,
+		0.9f,0.4f,0.0f,
+		0.9f,0.4f,0.0f,
+		1.0f,0.4f,0.0f,
+		0.9f,0.6f,0.0f
 	};
 	glGenVertexArrays(1, &VAO); //generar 1 VAO
 	glBindVertexArray(VAO);//asignar VAO
@@ -124,6 +214,8 @@ void CompileShaders() {
 }
 int main()
 {
+	//Inicialización de la semilla random
+	srand(time(NULL));
 	//Inicializaci�n de GLFW
 	if (!glfwInit())
 	{
@@ -176,47 +268,40 @@ int main()
 	CrearTriangulo();
 	CompileShaders();
 
-	//Actividad 1 de practica para cambios
-	float colours[] = { 1.0f,0.0f,0.0f };
+	//Variable para mantener los valores aleatorios.
+	float colours[] = { 0.0f,0.0f,0.0f };
 	//Loop mientras no se cierra la ventana
 	while (!glfwWindowShouldClose(mainWindow))
 	{
 		//Recibir eventos del usuario
 		glfwPollEvents();
 
+		//Obtener colores aleatorios del rango de 0.0 al 1.0
+		colours[0]=(float)(rand()/(float)(RAND_MAX));
+		colours[1]=(float)(rand()/(float)(RAND_MAX));
+		colours[2]=(float)(rand()/(float)(RAND_MAX));
+
 		//Limpiar la ventana
 		glClearColor(colours[0],colours[1],colours[2], 1.0f);
-
-		//Esperar y realizar cambio.
-		using namespace std::chrono_literals;
-		using namespace std::this_thread;
-		sleep_for(500ms);
-		if (colours[0] != 0.0f) {
-			colours[1] = colours[0];
-			colours[0] = 0.0f;
-		}
-		else if (colours[1] != 0.0f) {
-			colours[2] = colours[1];
-			colours[1] = 0.0f;
-		}
-		else {
-			colours[0] = colours[2];
-			colours[2] = 0.0f;
-		}
-
+		
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shader);
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES,0,12);//Modificacion para dibujar 4 triangulos
+		glDrawArrays(GL_TRIANGLES,0,3*33);//Modificacion para dibujar 33 triangulos
 		glBindVertexArray(0);
 
 		glUseProgram(0);
-
+		
 		glfwSwapBuffers(mainWindow);
-		 
+				 
 		//NO ESCRIBIR NINGUNA L�NEA DESPU�S DE glfwSwapBuffers(mainWindow); 
+
+		//Esperar y realizar cambio.
+		using namespace std::chrono_literals;
+		using namespace std::this_thread;
+		sleep_for(2s);
 	}
 
 
