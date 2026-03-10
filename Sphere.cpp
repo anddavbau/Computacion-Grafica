@@ -1,7 +1,7 @@
 
 /*
 * Sphere.cpp
-*Basado en el cï¿½digo creado por
+*Basado en el código creado por
 *  Created on: 06/09/2016
 *      Author: reynaldo Martell
 */
