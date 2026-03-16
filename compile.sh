@@ -1,4 +1,4 @@
 export SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-export Programa=E04-115004931
+export Programa=P04-115004931
 
 g++ -g "$SCRIPT_DIR/$Programa.cpp" "$SCRIPT_DIR/Camera.cpp" "$SCRIPT_DIR/Mesh.cpp" "$SCRIPT_DIR/Shader.cpp" "$SCRIPT_DIR/Sphere.cpp" "$SCRIPT_DIR/Window.cpp" -lGLEW -lGL -lglfw -o "$SCRIPT_DIR/$Programa.out"

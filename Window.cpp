@@ -22,6 +22,11 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	articulacion4 = 0.0f;
 	articulacion5 = 0.0f;
 	articulacion6 = 0.0f;
+	articulacion7 = 0.0f;
+	articulacion8 = 0.0f;
+	articulacion9 = 0.0f;
+	articulacion10 = 0.0f;
+	articulacion11 = 0.0f;
 	
 	for (size_t i = 0; i < 1024; i++)
 	{
@@ -150,7 +155,26 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	{
 		theWindow->articulacion6 += 10.0;
 	}
-
+	if (key == GLFW_KEY_Z)
+	{
+		theWindow->articulacion7 += 10.0;
+	}
+	if (key == GLFW_KEY_X)
+	{
+		theWindow->articulacion8 += 10.0;
+	}
+	if (key == GLFW_KEY_C)
+	{
+		theWindow->articulacion9 += 10.0;
+	}
+	if (key == GLFW_KEY_V)
+	{
+		theWindow->articulacion10 += 10.0;
+	}
+	if (key == GLFW_KEY_B)
+	{
+		theWindow->articulacion11 += 10.0;
+	}
 
 	if (key == GLFW_KEY_D && action == GLFW_PRESS)
 	{
