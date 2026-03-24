@@ -9,6 +9,7 @@ Utilizando distribución de Linux
 - libglew-dev
 - libglfw3-dev
 - libglm-dev
+- libassimp-dev
 
 Revisar el nombre exacto en su gestor de paquetes.
 
