@@ -101,11 +101,6 @@ GLuint Shader::GetViewLocation()
 	return uniformView;
 }
 
-GLuint Shader::GetEyePositionLocation()
-{
-	return uniformEyePosition;
-}
-
 
 GLuint Shader::getColorLocation()
 {

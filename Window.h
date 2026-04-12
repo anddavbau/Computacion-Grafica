@@ -1,7 +1,7 @@
 #pragma once
-#include<stdio.h>
-#include<GL/glew.h>
-#include<GLFW/glfw3.h>
+#include <stdio.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 class Window
 {
@@ -18,12 +18,6 @@ public:
 		return  glfwWindowShouldClose(mainWindow);}
 	bool* getsKeys() { return keys; }
 	void swapBuffers() { return glfwSwapBuffers(mainWindow); }
-	GLfloat getarticulacion1() { return articulacion1; }
-	GLfloat getarticulacion2() { return articulacion2; }
-	GLfloat getarticulacion3() { return articulacion3; }
-	GLfloat getarticulacion4() { return articulacion4; }
-	GLfloat getarticulacion5() { return articulacion5; }
-	GLfloat getarticulacion6() { return articulacion6; }
 	
 	~Window();
 private: 
@@ -37,7 +31,6 @@ private:
 	GLfloat xChange;
 	GLfloat yChange;
 	GLfloat muevex;
-	GLfloat articulacion1, articulacion2, articulacion3, articulacion4, articulacion5, articulacion6;
 	bool mouseFirstMoved;
 	static void ManejaTeclado(GLFWwindow* window, int key, int code, int action, int mode);
 	static void ManejaMouse(GLFWwindow* window, double xPos, double yPos);
