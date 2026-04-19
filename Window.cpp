@@ -14,6 +14,7 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	width = windowWidth;
 	height = windowHeight;
 	muevex = 2.0f;
+	muevex2 = 0.0f;
 	for (size_t i = 0; i < 1024; i++)
 	{
 		keys[i] = 0;
@@ -36,7 +37,7 @@ int Window::Initialise()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 	//CREAR VENTANA
-	mainWindow = glfwCreateWindow(width, height, "Practica06:Texturizado", NULL, NULL);
+	mainWindow = glfwCreateWindow(width, height, "Practica 07: Iluminación 1", NULL, NULL);
 
 	if (!mainWindow)
 	{
@@ -111,6 +112,12 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	if (key == GLFW_KEY_U)
 	{
 		theWindow-> muevex -= 1.0;
+	}
+	if (key == GLFW_KEY_H){
+		theWindow->muevex2 += 1.0f;
+	}
+	if (key == GLFW_KEY_J){
+		theWindow->muevex2 -= 1.0f;
 	}
 
 
