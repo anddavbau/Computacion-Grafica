@@ -15,6 +15,8 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	height = windowHeight;
 	muevex = 2.0f;
 	muevex2 = 0.0f;
+	flashlight_button = false;
+	change_button = false;
 	for (size_t i = 0; i < 1024; i++)
 	{
 		keys[i] = 0;
@@ -37,7 +39,7 @@ int Window::Initialise()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 	//CREAR VENTANA
-	mainWindow = glfwCreateWindow(width, height, "Practica 07: Iluminación 1", NULL, NULL);
+	mainWindow = glfwCreateWindow(width, height, "Practica 08: Iluminación 2", NULL, NULL);
 
 	if (!mainWindow)
 	{
@@ -119,6 +121,14 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	if (key == GLFW_KEY_J){
 		theWindow->muevex2 -= 1.0f;
 	}
+	if (key == GLFW_KEY_F)
+		theWindow->flashlight_button = true;
+	else
+		theWindow->flashlight_button = false;
+	if (key == GLFW_KEY_Z)
+		theWindow->change_button = true;
+	else
+		theWindow->change_button = false;
 
 
 

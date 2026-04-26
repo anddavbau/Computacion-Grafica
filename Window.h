@@ -15,6 +15,8 @@ public:
 	GLfloat getYChange();
 	GLfloat getmuevex() { return muevex; }
 	GLfloat getmuevex2() {return muevex2;}
+	bool getflashlight_button() { return flashlight_button; }
+	bool getchange_button() {return change_button;}
 	bool getShouldClose() {
 		return  glfwWindowShouldClose(mainWindow);}
 	bool* getsKeys() { return keys; }
@@ -33,6 +35,8 @@ private:
 	GLfloat yChange;
 	GLfloat muevex;
 	GLfloat muevex2;
+	bool flashlight_button;
+	bool change_button;
 	bool mouseFirstMoved;
 	static void ManejaTeclado(GLFWwindow* window, int key, int code, int action, int mode);
 	static void ManejaMouse(GLFWwindow* window, double xPos, double yPos);
