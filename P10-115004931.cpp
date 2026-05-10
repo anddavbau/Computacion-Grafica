@@ -1,10 +1,6 @@
 /*
-Animaci�n:
-- Simple o b�sica:Por banderas y condicionales (m�s de 1 transformaci�n geom�trica se ve modificada)
--Compleja: Por medio de funciones y algoritmos. 
--Textura Animada
+Animaci�n por Keyframes
 */
-
 //para cargar imagen
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -23,6 +19,11 @@ Animaci�n:
 //para probar el importer
 //#include<assimp/Importer.hpp>
 
+//Para el almacenaje y restauración del archivo
+#include <iostream>
+#include <fstream>
+#include <cstring>
+
 #include "Window.h"
 #include "Mesh.h"
 #include "Shader_light.h"
@@ -40,20 +41,11 @@ Animaci�n:
 #include "Material.h"
 const float toRadians = 3.14159265f / 180.0f;
 
-#include "Car_Movements.h"
-
 //variables para animaci�n
-float movCocheX;
-float movCocheZ;
-float movCocheY;
-float rotllantaY;
+float movCoche;
 float movOffset;
 float rotllanta;
 float rotllantaOffset;
-float movNaveX;
-float movNaveY;
-float rotNave;
-float rotNaveWing;
 bool avanza;
 float toffsetflechau = 0.0f;
 float toffsetflechav = 0.0f;
@@ -83,15 +75,12 @@ Texture Numero2Texture;
 Model Kitt_M;
 Model Llanta_M;
 Model Pista_M;
-Model Nave_M;
-Model Ala_M;
-Model Ala_M0;
-Model Elice;
+Model Nave_Cuerpo;
+Model Nave_Ala0;
+Model Nave_Ala1;
+Model Nave_Elice;
 Model Aeolipile_base_M;
 Model Aeolipile_M;
-Model Carro_chasis;
-Model Carro_cofre;
-Model Carro_llanta;
 
 Skybox skybox;
 
@@ -104,6 +93,11 @@ Material Material_opaco;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 static double limitFPS = 1.0 / 60.0;
+
+//INPUT DE KEYFRAMES
+void inputKeyframes(bool* keys);
+float reproduciranimacion, habilitaranimacion, guardoFrame, reinicioFrame, ciclo, ciclo2, contador = 0;
+bool saved_before=false, loaded_before=false;
 
 // luz direccional
 DirectionalLight mainLight;
@@ -261,11 +255,11 @@ void CreateObjects()
 
 	Mesh* obj6 = new Mesh();
 	obj6->CreateMesh(scoreVertices, scoreIndices, 32, 6);
-	meshList.push_back(obj6); // todos los n�meros
+	meshList.push_back(obj6);
 
 	Mesh* obj7 = new Mesh();
 	obj7->CreateMesh(numeroVertices, numeroIndices, 32, 6);
-	meshList.push_back(obj7); // solo un n�mero
+	meshList.push_back(obj7);
 
 }
 
@@ -276,6 +270,147 @@ void CreateShaders()
 	shader1->CreateFromFiles(vShader, fShader);
 	shaderList.push_back(*shader1);
 }
+
+
+
+///////////////////////////////KEYFRAMES/////////////////////
+
+
+bool animacion = false;
+
+
+
+//NEW// Keyframes
+float posXavion = 2.0, posYavion = 2.0, posZavion = 0;
+float	movAvion_x = 0.0f, movAvion_y = 0.0f;
+float giroAvion = 0, giroAla=0;
+
+#define MAX_FRAMES 100
+int i_max_steps = 90;
+int i_curr_steps = 4;
+typedef struct _frame
+{
+	//Variables para GUARDAR Key Frames
+	float movAvion_x;		//Variable para PosicionX
+	float movAvion_y;		//Variable para PosicionY
+	float movAvion_xInc;		//Variable para IncrementoX
+	float movAvion_yInc;		//Variable para IncrementoY
+	float giroAvion;
+	float giroAvionInc;
+	float giroAla;
+	float giroAlaInc;
+}FRAME;
+
+FRAME KeyFrame[MAX_FRAMES];
+int FrameIndex = 4;			//introducir datos
+bool play = false;
+int playIndex = 0;
+
+void saveFrame(void) //tecla L
+{
+
+	printf("frameindex %d\n", FrameIndex);
+
+
+	KeyFrame[FrameIndex].movAvion_x = movAvion_x;
+	KeyFrame[FrameIndex].movAvion_y = movAvion_y;
+	KeyFrame[FrameIndex].giroAvion = giroAvion;
+	KeyFrame[FrameIndex].giroAla = giroAla;
+	//no volatil, agregar una forma de escribir a un archivo para guardar los frames
+	FrameIndex++;
+}
+
+void resetElements(void) //Tecla 0
+{
+
+	movAvion_x = KeyFrame[0].movAvion_x;
+	movAvion_y = KeyFrame[0].movAvion_y;
+	giroAvion = KeyFrame[0].giroAvion;
+	giroAla = KeyFrame[0].giroAla;
+}
+
+void interpolation(void)
+{
+	KeyFrame[playIndex].movAvion_xInc = (KeyFrame[playIndex + 1].movAvion_x - KeyFrame[playIndex].movAvion_x) / i_max_steps;
+	KeyFrame[playIndex].movAvion_yInc = (KeyFrame[playIndex + 1].movAvion_y - KeyFrame[playIndex].movAvion_y) / i_max_steps;
+	KeyFrame[playIndex].giroAvionInc = (KeyFrame[playIndex + 1].giroAvion - KeyFrame[playIndex].giroAvion) / i_max_steps;
+	KeyFrame[playIndex].giroAlaInc = (KeyFrame[playIndex + 1].giroAla - KeyFrame[playIndex].giroAla) / i_max_steps;
+}
+
+
+void animate(void)
+{
+	//Movimiento del objeto // barra espaciadora
+	if (play)
+	{
+		if (i_curr_steps >= i_max_steps) //end of animation between frames?
+		{
+			playIndex++;
+			printf("playindex : %d\n", playIndex);
+			if (playIndex > FrameIndex - 2)	//end of total animation?
+			{
+				printf("Frame index= %d\n", FrameIndex);
+				printf("termina anim\n");
+				playIndex = 0;
+				play = false;
+			}
+			else //Next frame interpolations
+			{
+				//printf("entro aqu�\n");
+				i_curr_steps = 0; //Reset counter
+				//Interpolation
+				interpolation();
+			}
+		}
+		else
+		{
+			//printf("se qued� aqui\n");
+			//printf("max steps: %f", i_max_steps);
+			//Draw animation
+			movAvion_x += KeyFrame[playIndex].movAvion_xInc;
+			movAvion_y += KeyFrame[playIndex].movAvion_yInc;
+			giroAvion += KeyFrame[playIndex].giroAvionInc;
+			giroAla += KeyFrame[playIndex].giroAlaInc;
+			i_curr_steps++;
+		}
+
+	}
+}
+
+std::string file_name="nave_frames.txt";
+
+bool saveFrame_toFile(void){
+	std::ofstream val_file(file_name);//Crea el archivo
+	if(!val_file.is_open())
+		return false;
+	for(int i=0;i<sizeof(KeyFrame)/sizeof(KeyFrame[0]);i++)//Almacenamos todo el arreglo
+		val_file << KeyFrame[i].movAvion_x << " "
+					<< KeyFrame[i].movAvion_y << " " 
+					<< KeyFrame[i].giroAvion << " " 
+					<< KeyFrame[i].giroAla << "\n";
+	val_file << FrameIndex;//Almacenamos cuantas animaciones realmente tiene
+	val_file << std::endl;
+	val_file.close();
+	return true;
+}
+
+bool loadFrame_fromFile(void){
+	std::ifstream val_file(file_name);//Lee el archivo
+	if(!val_file.is_open())
+		return false;
+	float temp_x,temp_y,temp_rot,temp_rot_ala;//Variables para trabajar con la lectura del archivo
+	for(int i=0;i<sizeof(KeyFrame)/sizeof(KeyFrame[0]);i++){
+		val_file >> temp_x >> temp_y >> temp_rot >> temp_rot_ala;
+		KeyFrame[i].movAvion_x=temp_x;
+		KeyFrame[i].movAvion_y=temp_y;
+		KeyFrame[i].giroAvion=temp_rot;
+		KeyFrame[i].giroAla=temp_rot_ala;
+	}
+	val_file >> FrameIndex;//Restauramos el numero de animaciones presentes
+	val_file.close();
+	return true;
+}
+///////////////* FIN KEYFRAMES*////////////////////////////
 
 
 
@@ -301,7 +436,7 @@ int main()
 	AgaveTexture = Texture("Textures/Agave.tga");
 	AgaveTexture.LoadTextureA();
 	FlechaTexture = Texture("Textures/flechas.tga");
-	FlechaTexture.LoadTextureA(); 
+	FlechaTexture.LoadTextureA();
 	NumerosTexture = Texture("Textures/numerosbase.tga");
 	NumerosTexture.LoadTextureA();
 	Numero1Texture = Texture("Textures/numero1.tga");
@@ -316,25 +451,19 @@ int main()
 	Llanta_M.LoadModel("Models/llanta_optimizada.obj");
 	Pista_M = Model();
 	Pista_M.LoadModel("Models/pista.obj");
-	Nave_M = Model();
-	Nave_M.LoadModel("Models/nave0.obj");
-	Ala_M = Model();
-	Ala_M.LoadModel("Models/ala.obj");
-	Ala_M0 = Model();
-	Ala_M0.LoadModel("Models/ala0.obj");
-	Elice = Model();
-	Elice.LoadModel("Models/elice.obj");
+	//Nave
+	Nave_Cuerpo = Model();
+	Nave_Cuerpo.LoadModel("Models/nave0.obj");
+	Nave_Ala0 = Model();
+	Nave_Ala0.LoadModel("Models/ala.obj");
+	Nave_Ala1 = Model();
+	Nave_Ala1.LoadModel("Models/ala0.obj");
+	Nave_Elice = Model();
+	Nave_Elice.LoadModel("Models/elice.obj");
 	Aeolipile_base_M = Model();
 	Aeolipile_base_M.LoadModel("Models/Aeolipile_base.obj");
 	Aeolipile_M = Model();
 	Aeolipile_M.LoadModel("Models/Aeolipile.obj");
-	Carro_chasis = Model();
-	Carro_chasis.LoadModel("Models/Carro chasis.obj");
-	Carro_cofre = Model();
-	Carro_cofre.LoadModel("Models/Carro Cofre.obj");
-	Carro_llanta = Model();
-	Carro_llanta.LoadModel("Models/Carro Llanta.obj");
-
 
 	std::vector<std::string> skyboxFaces;
 	skyboxFaces.push_back("Textures/Skybox/cupertin-lake_rt.tga");
@@ -350,9 +479,10 @@ int main()
 	Material_opaco = Material(0.3f, 4);
 
 
+
 	//luz direccional, s�lo 1 y siempre debe de existir
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,
-		0.5f, 0.5f,
+		0.3f, 0.3f,
 		0.0f, -1.0f, -1.0f);
 	//contador de luces puntuales
 	unsigned int pointLightCount = 0;
@@ -381,14 +511,7 @@ int main()
 		1.0f, 0.0f, 0.0f,
 		15.0f);
 	spotLightCount++;
-	//Luz del vehiculo
-	spotLights[2] = SpotLight(1.0f, 1.0f, 0.0f,
-		1.0f, 2.0f,
-		0.0f, 0.0f, 0.0f,//x y z
-		-1.0f, 0.0f, 0.0f,//dir x y z
-		1.5f, 0.0f, 0.0f,
-		20.0f);
-	spotLightCount++;
+
 
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
@@ -396,30 +519,44 @@ int main()
 	GLuint uniformColor = 0;
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 1000.0f);
 	
-	movCocheX = 0.0f;
-	movCocheZ = 0.0f;
-	movCocheY = 1.0f;
-	rotllantaY = 0.0f;
-	movOffset = 0.15f;
+	movCoche = 0.0f;
+	movOffset = 0.01f;
 	rotllanta = 0.0f;
 	rotllantaOffset = 10.0f;
-	movNaveX = 0.0f;
-	movNaveY = 0.0f;
-	rotNave = 0.0f;
-	rotNaveWing = 1.0f;
 
-	glm::vec3 lowerLight(0.0f,0.0f,0.0f);
-
+	glm::vec3 lowerLight(0.0f, 0.0f, 0.0f);
 	glm::mat4 model(1.0);
 	glm::mat4 modelaux(1.0);
-	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
-	glm::vec2 toffset = glm::vec2(0.0f, 0.0f);
+	glm::vec3 color (1.0f, 1.0f, 1.0f);
+	glm::vec2 toffset (0.0f, 0.0f);
 
-	//Control de animaciones para carros
-	bool car_movement[4]={false,false,false,false};
-	//Control de animaciones para nava
-	bool nave_movement[3]={false,false,false};
 
+	//Keyframes
+	glm::vec3 posblackhawk = glm::vec3(2.0f, 0.0f, 0.0f);
+	//KEYFRAMES DECLARADOS INICIALES
+
+	KeyFrame[0].movAvion_x = 0.0f;
+	KeyFrame[0].movAvion_y = 0.0f;
+	KeyFrame[0].giroAvion = 0;
+
+
+	KeyFrame[1].movAvion_x = 0.0f;
+	KeyFrame[1].movAvion_y = 2.0f;
+	KeyFrame[1].giroAvion = 0;
+
+	KeyFrame[2].movAvion_x = 0.0f;
+	KeyFrame[2].movAvion_y = -2.0f;
+	KeyFrame[2].giroAvion = 0;
+
+	KeyFrame[3].movAvion_x = 0.0f;
+	KeyFrame[3].movAvion_y = 0.0f;
+	KeyFrame[3].giroAvion = 0;
+
+	printf("\nTeclas para uso de Keyframes:\n1.-Presionar barra espaciadora para reproducir animacion.\n2.-Presionar 0 para volver a habilitar reproduccion de la animacion\n");
+	printf("3.-Presiona L para guardar frame\n4.-Presiona P para habilitar guardar nuevo frame\n5.-Presiona 1 para mover en X\n6.-Presiona 2 para habilitar mover en X\n");
+
+	
+	
 	////Loop mientras no se cierra la ventana
 	while (!mainWindow.getShouldClose())
 	{
@@ -430,37 +567,20 @@ int main()
 
 		angulovaria += 0.5f*deltaTime;
 
-		rotllanta+=deltaTime*rotllantaOffset;
-		//Animacion para nave movimiento
-		if(nave_movement[0]==false){
-			if(movNaveX>(-20)){
-				movNaveX-=movOffset*deltaTime*0.5;
-			}else
-				nave_movement[0]=true;
-		}else if(nave_movement[1]==false){
-			if(rotNave<180){
-				rotNave+=deltaTime*0.6;
-			}else
-				nave_movement[1]=true;
-		}else if(nave_movement[2]==false){
-			if(movNaveX<0){
-				movNaveX+=movOffset*deltaTime*0.5;
-			}else{
-				movNaveX=0.0f;
-				rotNave=0.0f;
-				for(int i=0;i<2;i++)
-					nave_movement[i]=false;
-			}
-		}
-		//Animación para nave movimiento vertical
-		movNaveY+=deltaTime*4;
-		//Animación para ala de nave
-		rotNaveWing+=deltaTime*0.5;
+			//�C�mo haces para que el coche no se salga del piso?
+			movCoche -= movOffset * deltaTime;
+			rotllanta += rotllantaOffset * deltaTime;
+	
+
 
 		//Recibir eventos del usuario
 		glfwPollEvents();
 		camera.keyControl(mainWindow.getsKeys(), deltaTime);
 		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+
+		//para keyframes
+		inputKeyframes(mainWindow.getsKeys());
+		animate();
 
 		// Clear the window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -472,7 +592,7 @@ int main()
 		uniformView = shaderList[0].GetViewLocation();
 		uniformEyePosition = shaderList[0].GetEyePositionLocation();
 		uniformColor = shaderList[0].getColorLocation();
-		uniformTextureOffset = shaderList[0].getOffsetLocation(); // para la textura con movimiento
+		uniformTextureOffset = shaderList[0].getOffsetLocation();
 
 		//informaci�n en el shader de intensidad especular y brillo
 		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
@@ -493,13 +613,12 @@ int main()
 		shaderList[0].SetSpotLights(spotLights, spotLightCount);
 
 
-		//Reinicializando variables cada ciclo de reloj
-		model= glm::mat4(1.0);
-		modelaux= glm::mat4(1.0);
-		color = glm::vec3(1.0f, 1.0f, 1.0f);
-		toffset = glm::vec2(0.0f, 0.0f);
-		glUniform2fv(uniformTextureOffset, 1, glm::value_ptr(toffset));
+		//reiniciar variables antes de que sean enviadas al shader
 
+		color = glm::vec3(1.0f, 1.0f, 1.0f);
+		toffset = glm::vec2(0.0f, 0.0f); 
+		
+		glUniform2fv(uniformTextureOffset, 1, glm::value_ptr(toffset));
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(30.0f, 1.0f, 30.0f));
@@ -508,6 +627,7 @@ int main()
 		glUniform2fv(uniformTextureOffset, 1, glm::value_ptr(toffset));
 		pisoTexture.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
+
 		meshList[2]->RenderMesh();
 
 		//Pista
@@ -516,96 +636,104 @@ int main()
 		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
-		Pista_M.RenderModel();
+		//Pista_M.RenderModel();
 
-		//Base del carro
+		//Instancia del coche 
 		model = glm::mat4(1.0);
-		model = glm::translate(model, mover_Carro(deltaTime,movOffset));
-		model = glm::rotate(model, (-90+Y_rotate_Carro(deltaTime,movOffset))*toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, X_rotate_Carro(deltaTime,movOffset)*toRadians,glm::vec3(1.0f,0.0f,0.0f));
-		spotLights[2].SetPos(glm::vec3(model[3])+glm::vec3(-6.3f,2.0f,0.0f)); //Utilizamos el modelo para obtener sus coordenadas globales actuales y realizar una correción de desplazamiento.
+		model = glm::translate(model, glm::vec3(movCoche-50.0f, 0.5f, -2.0f));
 		modelaux = model;
+		model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Carro_chasis.RenderModel();
+		Kitt_M.RenderModel();
 
-		//Cofre del carro
+		//Llanta delantera izquierda
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(7.0f, -0.5f, 8.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, rotllanta * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		color = glm::vec3(0.5f, 0.5f, 0.5f);//llanta con color gris
 		glUniform3fv(uniformColor, 1, glm::value_ptr(color));
-		model = glm::translate(model, glm::vec3(0.0f, 0.9f, 2.3f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Carro_cofre.RenderModel();
+		Llanta_M.RenderModel();
 
-		//Lantas del carro
-		glUniform3fv(uniformColor,1,glm::value_ptr(color));
-		//1
+		//Llanta trasera izquierda
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(-1.82f,-0.65f,3.75f));
-		model = glm::rotate(model,rotllanta*toRadians,glm::vec3(1.0f,0.0f,0.0f));
+		model = glm::translate(model, glm::vec3(15.5f, -0.5f, 8.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, rotllanta * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Carro_llanta.RenderModel();
-		//2
+		Llanta_M.RenderModel();
+
+		//Llanta delantera derecha
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(-1.82f,-0.65f,-3.0f));
-		model = glm::rotate(model,rotllanta*toRadians,glm::vec3(1.0f,0.0f,0.0f));
+		model = glm::translate(model, glm::vec3(7.0f, -0.5f, 1.5f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -rotllanta * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Carro_llanta.RenderModel();
-		//3
+		Llanta_M.RenderModel();
+
+		//Llanta trasera derecha
 		model = modelaux;
-		model = glm::translate(model, glm::vec3(1.82f,-0.65f,3.75f));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f,1.0f,0.0f));
-		model = glm::rotate(model,-rotllanta*toRadians,glm::vec3(1.0f,0.0f,0.0f));
+		model = glm::translate(model, glm::vec3(15.5f, -0.5f, 1.5f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -rotllanta * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Carro_llanta.RenderModel();
-		//4
-		model = modelaux;
-		model = glm::translate(model, glm::vec3(1.82f,-0.65f,-3.0f));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f,1.0f,0.0f));
-		model = glm::rotate(model,-rotllanta*toRadians,glm::vec3(1.0f,0.0f,0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Carro_llanta.RenderModel();	
+		Llanta_M.RenderModel();
 
 
-		
 		//Aqu� va la nave con jerarqu�a de modelos, completar
+		
+		//Nave
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 3.0f, 1.5f));
-		model = glm::rotate(model,0.0f,glm::vec3(0.0f,1.0f,0.0f));
+		posblackhawk = glm::vec3(posXavion + movAvion_x, posYavion + movAvion_y, posZavion);
+		model = glm::translate(model, posblackhawk);
+		model = glm::rotate(model, (giroAvion) * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		modelaux = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Nave_M.RenderModel();
+		Nave_Cuerpo.RenderModel();
 		//Ala 1
 		model = modelaux;
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -0.3f));
-		model = glm::rotate(model,20*sin(rotNaveWing)*toRadians,glm::vec3(1.0f,1.0f,0.0f));
+		model = glm::rotate(model,giroAla*toRadians,glm::vec3(0.0f,1.0f,0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Ala_M.RenderModel();
+		Nave_Ala0.RenderModel();
 		//Ala 2
 		model = modelaux;
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.3f));
-		model = glm::rotate(model,20*sin(rotNaveWing)*toRadians,glm::vec3(1.0f,1.0f,0.0f));
+		model = glm::rotate(model,giroAla*toRadians,glm::vec3(0.0f,-1.0f,0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Ala_M0.RenderModel();
+		Nave_Ala1.RenderModel();
 		//Elice 1
 		model = modelaux;
 		model = glm::translate(model, glm::vec3(-0.35f, -0.30f, -0.35f));
-		model = glm::rotate(model,4*rotNaveWing*toRadians,glm::vec3(1.0f,0.0f,0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Elice.RenderModel();
+		Nave_Elice.RenderModel();
 		//Elice 2
 		model = modelaux;
 		model = glm::translate(model, glm::vec3(-0.35f, -0.30f, 0.35f));
-		model = glm::rotate(model,4*rotNaveWing*toRadians,glm::vec3(1.0f,0.0f,0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Elice.RenderModel();
+		Nave_Elice.RenderModel();
+		
 
 		//AEOLIPILE
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(20.0f, -0.5f, 1.5f));
+		model = glm::translate(model, glm::vec3(10.0f, -0.5f, 3.5f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Aeolipile_base_M.RenderModel();
 
 		model = glm::translate(model, glm::vec3(0.0f, 4.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Aeolipile_M.RenderModel();
+
+
+
+		//Modelos con blending al final para que no afecten a los dem�s objetos, aunque tambi�n se pueden renderizar al inicio pero con blending  activado y desactivado
+
 
 		//Agave �qu� sucede si lo renderizan antes del coche y de la pista?
 		model = glm::mat4(1.0);
@@ -618,7 +746,7 @@ int main()
 		AgaveTexture.UseTexture();
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[3]->RenderMesh();
-
+		
 		//textura con movimiento
 		//Importantes porque la variable uniform no podemos modificarla directamente
 		toffsetflechau += 0.001;
@@ -628,7 +756,6 @@ int main()
 			toffsetflechau = 0.0;
 		//if (toffsetv > 1.0)
 		//	toffsetv = 0;
-		//printf("\ntfosset %f \n", toffsetu);
 		//pasar a la variable uniform el valor actualizado
 		toffset = glm::vec2(toffsetflechau, toffsetflechav);
 
@@ -661,13 +788,10 @@ int main()
 		meshList[5]->RenderMesh();
 
 		//n�mero 1
-		//toffsetnumerou = 0.0;
-		//toffsetnumerov = 0.0;
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-10.0f, 2.0f, -6.0f));
 		model = glm::rotate(model, 90 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
-		//glUniform2fv(uniformTextureOffset, 1, glm::value_ptr(toffset));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		color = glm::vec3(1.0f, 1.0f, 1.0f);
 		glUniform3fv(uniformColor, 1, glm::value_ptr(color));
@@ -675,7 +799,7 @@ int main()
 		Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[6]->RenderMesh();
 
-		for (int i = 1; i < 4; i++)
+		for (int i = 1; i<4; i++)
 		{
 			//n�meros 2-4
 			toffsetnumerou += 0.25;
@@ -693,7 +817,7 @@ int main()
 			Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			meshList[6]->RenderMesh();
 
-		}
+		 }
 
 		for (int j = 1; j < 5; j++)
 		{
@@ -713,13 +837,13 @@ int main()
 			Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
 			meshList[6]->RenderMesh();
 		}
-
+ 
 
 		//n�mero cambiante 
 		/*
 		�C�mo hacer para que sea a una velocidad visible?
 		*/
-		toffsetnumerocambiau += 0.25;
+		toffsetnumerocambiau += 0.25; 
 		if (toffsetnumerocambiau > 1.0)
 			toffsetnumerocambiau = 0.0;
 		toffsetnumerov = 0.0;
@@ -752,12 +876,16 @@ int main()
 		//if
 		//Numero1Texture.UseTexture();
 		//Numero2Texture.UseTexture();
-
+		
 		Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[5]->RenderMesh();
 
-		
+
 		glDisable(GL_BLEND);
+		
+		
+
+
 
 		glUseProgram(0);
 
@@ -765,4 +893,173 @@ int main()
 	}
 
 	return 0;
+}
+
+void inputKeyframes(bool* keys)
+{
+	if (keys[GLFW_KEY_SPACE])
+	{
+		if (reproduciranimacion < 1)
+		{
+			if (play == false && (FrameIndex > 1))
+			{
+				resetElements();
+				//First Interpolation				
+				interpolation();
+				play = true;
+				playIndex = 0;
+				i_curr_steps = 0;
+				reproduciranimacion++;
+				printf("presiona 0 para habilitar reproducir de nuevo la animaci�n'\n");
+				habilitaranimacion = 0;
+
+			}
+			else
+			{
+				play = false;
+
+			}
+		}
+	}
+	if (keys[GLFW_KEY_0])
+	{
+		if (habilitaranimacion < 1)
+		{
+			reproduciranimacion = 0;
+			habilitaranimacion = 1;
+			saved_before=false;
+			loaded_before=false;
+			printf("Ya puedes reproducir de nuevo la animaci�n con la tecla de barra espaciadora'\n");
+		}
+	}
+
+	if (keys[GLFW_KEY_L])
+	{
+		if (guardoFrame < 1)
+		{
+			saveFrame();
+			//printf("movAvion_x es: %f\n", movAvion_x);
+			//printf("movAvion_y es: %f\n", movAvion_y);
+			printf("presiona P para habilitar guardar otro frame'\n");
+			guardoFrame++;
+			reinicioFrame = 0;
+		}
+	}
+	if (keys[GLFW_KEY_P])
+	{
+		if (reinicioFrame < 1)
+		{
+			guardoFrame = 0;
+			reinicioFrame = 1;
+			printf("Ya puedes guardar otro frame presionando la tecla L'\n");
+		}
+	}
+	if (keys[GLFW_KEY_K]){
+		if(!saved_before){
+			saved_before=true;
+			if(saveFrame_toFile())
+				printf("El archivo se almaceno con exito\n");
+			else
+				printf("Ocurrio un error al intentar almacenar el archivo\n");
+		}
+	}
+	if (keys[GLFW_KEY_L]){
+		if(!loaded_before){
+			loaded_before=true;
+			if(loadFrame_fromFile())
+				printf("El archivo se restauro con exito\n");
+			else
+				printf("Ocurrio un error al intentar recuperar el archivo\n");
+		}
+	}
+
+
+	if (keys[GLFW_KEY_Z])
+	{
+		if (ciclo < 1)
+		{
+			//printf("movAvion_x es: %f\n", movAvion_x);
+			movAvion_x += 1.0f;
+			printf("movAvion_x es: %f\n", movAvion_x);
+			ciclo++;
+			ciclo2 = 0;
+			printf("Presiona la tecla 2 para poder habilitar la variable\n");
+		}
+
+	}
+	if (keys[GLFW_KEY_X])
+	{
+		if (ciclo < 1)
+		{
+			//printf("movAvion_x es: %f\n", movAvion_x);
+			movAvion_x -= 1.0f;
+			printf("movAvion_x es: %f\n", movAvion_x);
+			ciclo++;
+			ciclo2 = 0;
+			printf("Presiona la tecla 2 para poder habilitar la variable\n");
+		}
+
+	}
+	if (keys[GLFW_KEY_C])
+	{
+		if (ciclo < 1)
+		{
+			//printf("movAvion_x es: %f\n", movAvion_x);
+			movAvion_y += 1.0f;
+			printf("movAvion_y es: %f\n", movAvion_y);
+			ciclo++;
+			ciclo2 = 0;
+			printf("Presiona la tecla 2 para poder habilitar la variable\n");
+		}
+
+	}
+	if (keys[GLFW_KEY_V])
+	{
+		if (ciclo < 1)
+		{
+			//printf("movAvion_x es: %f\n", movAvion_x);
+			movAvion_y -= 1.0f;
+			printf("movAvion_y es: %f\n", movAvion_y);
+			ciclo++;
+			ciclo2 = 0;
+			printf("Presiona la tecla 2 para poder habilitar la variable\n");
+		}
+
+	}
+	if (keys[GLFW_KEY_B])
+	{
+		if (ciclo < 1)
+		{
+			//printf("movAvion_x es: %f\n", movAvion_x);
+			giroAvion += 45.0f;
+			printf("giroAvion es: %f\n", giroAvion);
+			ciclo++;
+			ciclo2 = 0;
+			printf("Presiona la tecla 2 para poder habilitar la variable\n");
+		}
+
+	}
+	if (keys[GLFW_KEY_N])
+	{
+		if (ciclo < 1)
+		{
+			//printf("movAvion_x es: %f\n", movAvion_x);
+			giroAvion -= 45.0f;
+			printf("giroAvion es: %f\n", giroAvion);
+			ciclo++;
+			ciclo2 = 0;
+			printf("Presiona la tecla 2 para poder habilitar la variable\n");
+		}
+
+	}
+	if (keys[GLFW_KEY_2])
+	{
+		if (ciclo2 < 1)
+		{
+			ciclo = 0;
+			ciclo2 = 1;
+			printf("Ya puedes modificar tu variable presionando la teclas [Z,X,C,V,B,N]\n");
+		}
+	}
+
 }

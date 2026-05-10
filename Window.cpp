@@ -1,5 +1,4 @@
 #include "Window.h"
-#include "Car_Movements.h"
 
 Window::Window()
 {
@@ -40,7 +39,7 @@ int Window::Initialise()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 	//CREAR VENTANA
-	mainWindow = glfwCreateWindow(width, height, "Practica 09-1: Animación Básica", NULL, NULL);
+	mainWindow = glfwCreateWindow(width, height, "Practica 10: Animación Por Keyframes", NULL, NULL);
 
 	if (!mainWindow)
 	{
@@ -122,16 +121,6 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	if (key == GLFW_KEY_J){
 		theWindow->muevex2 -= 1.0f;
 	}
-	if (key == GLFW_KEY_F)
-		theWindow->flashlight_button = true;
-	else
-		theWindow->flashlight_button = false;
-	if (key == GLFW_KEY_Z)
-		theWindow->change_button = true;
-	else
-		theWindow->change_button = false;
-	if (key == GLFW_KEY_R)
-		reset_mover_Carro();
 
 
 
